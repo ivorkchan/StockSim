@@ -12,5 +12,5 @@ public interface LoginInputBoundary {
      * @param data the input data
      * @return CompletableFuture that completes when the login process is done
      */
-    CompletableFuture<Void> execute(LoginInputData data);
+    void execute(LoginInputData data);
 }

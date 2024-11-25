@@ -51,7 +51,7 @@ public class ServiceManager {
     /**
      * Retrieves a service instance for the given type
      *
-     * @param key The interfacde or class type of the service to retrieve
+     * @param key The interface or class type of the service to retrieve
      * @param <T> The type of the service
      * @return The service instance
      */

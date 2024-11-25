@@ -13,13 +13,13 @@
   - [Use Cases and User Stories](#use-cases-and-user-stories)
     - [Use Case 1: User Registration](#use-case-1-user-registration)
     - [Use Case 2: User Login](#use-case-2-user-login)
-    - [Use Case 3: Execute Trades BUY](#use-case-3-execute-trades-buy)
-    - [Use Case 4: Execute Trades SELL](#use-case-4-execute-trades-sell)
+    - [Use Case 4: Execute Trades BUY](#use-case-4-execute-trades-buy)
+    - [Use Case 5: Execute Trades SELL](#use-case-5-execute-trades-sell)
     - [Use Case 5: Execute Trades SHORTSELL](#use-case-5-execute-trades-shortsell)
     - [Use Case 6: View Portfolio](#use-case-6-view-portfolio)
     - [Use Case 7: View Transaction History](#use-case-7-view-transaction-history)
     - [Use Case 8: View Ranking](#use-case-8-view-ranking)
-    - [Use Case 9: Password Reset + Email Verification](#use-case-9-password-reset--email-verification)
+    - [Use Case 8: Password Reset + Email Verification](#use-case-8-password-reset--email-verification)
     - [Use Case 10: Feedback/Support](#use-case-10-feedbacksupport)
     - [Use Case 11: Minimum Number of Trades](#use-case-11-minimum-number-of-trades)
   - [Credits](#credits)
@@ -79,11 +79,11 @@ It provides business students and traders with a risk-free setting to learn, pra
 
 User Story: As a new user, I want to create a new account so that I can log into the app and start trading. To sign up/register, I need to choose a userID and a password.
 
-- Interactor: RegistrationInteractor
-- Controller: RegistrationController
-- Presenter: RegistrationView
+- Interactor: `RegistrationInteractor`
+- Controller: `RegistrationController`
+- Presenter: `RegistrationView`
 - Steps:
-  - The user selects "Register" and inputs the required information (View -> Controller).
+  - The user selects "Sign Up" and types in the required information (View -> Controller).
   - The RegistrationController loads the registration info to the Interactor. The Interactor verifies data compliance and creates a new account (Controller -> Interactor).
   - If registration is successful, the RegistrationInteractor instructs the RegistrationView to display a success message and guide the user to log in (Controller -> Presenter).
   - If registration fails, the RegistrationController instructs the RegistrationView to display an error message (Controller -> Presenter).
@@ -101,7 +101,7 @@ User Story: As a returning user, I want to log into my account with my username 
   - If the login is successful, the LoginInteractor loads the user data and directs the LoginView to the trading interface (Interactor -> Presenter).
   - If the login fails, the LoginInteractor instructs the LoginView to display an error message (Interactor -> Presenter).
 
-### Use Case 3: Execute Trades BUY
+### Use Case 4: Execute Trades BUY
 
 User Story: As a user, I want to buy shares of a stock so that I can hold a long position in it. For example, I can buy 10 shares of AAPL (Apple Inc.) at $5 per share.
 
@@ -113,7 +113,7 @@ User Story: As a user, I want to buy shares of a stock so that I can hold a long
   - The ExecuteBuyInteractor processes the order and updates the account balance and portfolio (Interactor).
   - The ExecuteBuyInteractor returns the trade results to the TradeView, displaying success or error messages (Interactor -> Presenter).
 
-### Use Case 4: Execute Trades SELL
+### Use Case 5: Execute Trades SELL
 
 User Story: As a user, I want to sell shares of a stock that I am currently holding so that the position of the stock will decrease and I will get money in return. For example, I have 10 shares of AAPL (Apple Inc.), so I can sell 5 shares.
 
@@ -178,7 +178,7 @@ User Story: As a user, I am not holding any shares of AAPL (Apple). I want to sh
   - The RankingController retrieves the current user's rank by comparing their portfolio's total value with other users and formats all users' assets and portfolio values by ranking.
   - The RankingController sends the data to the RankingView and provides optional details, such as viewing the top 3 or top 5 users listed in descending order.
 
-### Use Case 9: Password Reset + Email Verification
+### Use Case 8: Password Reset + Email Verification
 
 - User Story:
   - As a trader, I want to reset my password securely using email verification so I can regain access to my account if I forget my password.

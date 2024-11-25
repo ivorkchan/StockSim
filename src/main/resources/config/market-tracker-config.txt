@@ -1,0 +1,6 @@
+# initial interval in milliseconds
+INITIAL_UPDATE_MARKET_INTERVAL = 60000
+# interval adjustment rate in milliseconds
+UPDATE_INTERVAL_ADJUSTMENT_RATE = 60000
+# number of rounds without rate limit
+ROUNDS_WITHOUT_RATE_LIMIT_TO_DECREASE = 5

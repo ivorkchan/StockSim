@@ -17,6 +17,7 @@
 
 - Refactored `StockMarket` to `MarketTracker`
 - Refined all UI components to have a consistent style
+- Separate API update config into `market-tracker-config` file and implement `ConfigLoader` to load static configuration
 
 ### Bug Fixes
 

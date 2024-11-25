@@ -21,9 +21,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class MarketTracker {
 
     // market information update interval in milliseconds
-    private static final long INITIAL_UPDATE_MARKET_INTERVAL = 60000; // initial interval in milliseconds
-    private static final long UPDATE_INTERVAL_ADJUSTMENT_RATE = 60000; // interval adjustment rate in milliseconds
-    private static final int ROUNDS_WITHOUT_RATE_LIMIT_TO_DECREASE = 5; // number of rounds without rate limit
+    // initial interval in milliseconds
+    private static final long INITIAL_UPDATE_MARKET_INTERVAL
+            = Long.parseLong(MarketTrackerConfigLoader.getMarketTrackerProperty("INITIAL_UPDATE_MARKET_INTERVAL"));
+    // interval adjustment rate in milliseconds
+    private static final long UPDATE_INTERVAL_ADJUSTMENT_RATE
+            = Long.parseLong(MarketTrackerConfigLoader.getMarketTrackerProperty("UPDATE_INTERVAL_ADJUSTMENT_RATE"));
+    // number of rounds without rate limit
+    private static final int ROUNDS_WITHOUT_RATE_LIMIT_TO_DECREASE
+            = Integer.parseInt(MarketTrackerConfigLoader.getMarketTrackerProperty("ROUNDS_WITHOUT_RATE_LIMIT_TO_DECREASE"));;
 
     // thread-safe Singleton instance
     private static volatile MarketTracker instance = null;
@@ -128,11 +134,13 @@ public class MarketTracker {
             // notify observer of price update
             System.out.println("Notifying observers...");
             MarketObserver.Instance().onMarketUpdate();
-        } catch (RateLimitExceededException | IOException e) {
+        } catch (RateLimitExceededException e) {
             // on rate limit, increase the update interval and reset the rounds counter
             currentUpdateInterval += UPDATE_INTERVAL_ADJUSTMENT_RATE;
             roundsWithoutRateLimit = 0;
             restartScheduler(); // restart scheduler with new interval
+        } catch (IOException e) {
+            e.printStackTrace();
         } finally {
             lock.writeLock().unlock();
         }
