@@ -27,7 +27,6 @@
 ## Overview
 
 StockSim is a desktop trading application designed to simulate real-world market conditions.
-
 It provides business students and traders with a risk-free setting to learn, practice, and polish their trading skills.
 
 ## How to Install
@@ -37,7 +36,7 @@ It provides business students and traders with a risk-free setting to learn, pra
 1. Clone the `main` branch of the repository
 2. Apply for a API from [Finnhub](https://finnhub.io/)
 3. Set up `STOCK_API_KEY` in `.env.local`
-4. Rub the main app
+4. Run the main app
 
 ### Download
 
