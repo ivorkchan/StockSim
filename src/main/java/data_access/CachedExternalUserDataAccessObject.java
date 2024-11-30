@@ -1,5 +1,6 @@
 package data_access;
 
+import data_transfer.cache.UserCache;
 import data_transfer.parser.DocumentParsingException;
 import entity.User;
 import java.util.concurrent.CompletableFuture;
@@ -11,7 +12,6 @@ import use_case.view_history.ViewHistoryDataAccessInterface;
 import utility.ConfigLoader;
 import utility.ServiceManager;
 import utility.SessionManager;
-import utility.UserCache;
 import utility.exceptions.ValidationException;
 
 public class CachedExternalUserDataAccessObject
