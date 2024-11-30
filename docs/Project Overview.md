@@ -1,6 +1,8 @@
-# Trading Simulation App - Helps Users Practice Before Making Real Trades
+# StockSim Overview
 
-> [!WARNING] This documentation version is deprecated.
+> [!WARNING]
+>
+> This documentation version maybe deprecated.
 >
 > Please review the `README.md` file in the root directory for latest updates.
 
