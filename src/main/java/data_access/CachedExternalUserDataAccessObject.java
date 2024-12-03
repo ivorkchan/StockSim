@@ -3,6 +3,7 @@ package data_access;
 import data_transfer.cache.UserCache;
 import data_transfer.parser.DocumentParsingException;
 import entity.User;
+import java.rmi.ServerException;
 import java.util.concurrent.CompletableFuture;
 import use_case.execute_buy.ExecuteBuyDataAccessInterface;
 import use_case.execute_sell.ExecuteSellDataAccessInterface;
@@ -52,24 +53,18 @@ public class CachedExternalUserDataAccessObject
     }
 
     @Override
-    public void updateUserData(User user) {
-        // Asynchronously write data to the database
-        CompletableFuture.runAsync(() -> {
-                    try {
-                        // Call the database method to update user data
-                        database.updateUserData(user);
-                        // Update user data in cache
-                        cachedUsers.updateUser(user);
-                    } catch (Exception e) {
-                        // Handle any exceptions that might occur during database update
-                        throw new RuntimeException("Failed to update user data", e);
-                    }
-                })
-                .exceptionally(ex -> {
-                    System.err.println("Error occurred while updating user data: " + ex.getMessage());
-                    ex.printStackTrace();
-                    return null;
-                });
+    public synchronized void updateUserData(User user) throws ServerException {
+        // Update cache first to ensure immediate consistency
+        cachedUsers.updateUser(user);
+
+        try {
+            // Update database synchronously to ensure consistency
+            database.updateUserData(user);
+        } catch (ServerException e) {
+            // If database update fails, invalidate the cache and propagate the error
+            cachedUsers.remove(user.getUsername());
+            throw e;
+        }
     }
 
     @Override

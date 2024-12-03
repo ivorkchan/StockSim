@@ -128,6 +128,10 @@ public class MarketTracker {
                     } finally {
                         lock.writeLock().unlock();
                     }
+
+                    // Broadcast initial stock data to view
+                    System.out.println("Broadcasting initial stock data...");
+                    ViewManager.Instance().broadcastEvent(new UpdateStockEvent(getStocks()));
                 });
     }
 

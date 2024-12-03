@@ -68,4 +68,14 @@ public class UserCache {
             lock.readLock().unlock();
         }
     }
+
+    // remove a user from the cache
+    public void remove(String username) {
+        lock.writeLock().lock();
+        try {
+            users.remove(username);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
 }

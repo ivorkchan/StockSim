@@ -60,12 +60,16 @@ public class InMemoryStockDataAccessObject implements StockDataAccessInterface {
     public Map<String, Double> getUpdatedPrices() {
         Map<String, Double> updatedPrices = new HashMap<>();
 
-        // Stores ticker and marketPrice in separate map to pass as updated price
+        // Simulate price changes by randomly adjusting current prices within a small range
         for (Stock stock : stocks.values()) {
-            updatedPrices.put(stock.getTicker(), stock.getMarketPrice());
+            double currentPrice = stock.getMarketPrice();
+            // Random price change between -2% and +2%
+            double priceChange = currentPrice * (Math.random() * 0.04 - 0.02);
+            double newPrice = Math.max(0.01, currentPrice + priceChange); // Ensure price doesn't go below $0.01
+            stock.updatePrice(newPrice); // Update the stock's price
+            updatedPrices.put(stock.getTicker(), newPrice);
         }
 
-        // Return an unmodifiable view of the updated prices map to prevent external modifications
         return Collections.unmodifiableMap(updatedPrices);
     }
 }

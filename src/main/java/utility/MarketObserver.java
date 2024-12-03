@@ -38,6 +38,22 @@ public class MarketObserver {
             User user = dataAccess.getUserWithCredential(
                     ClientSessionManager.Instance().getCredential());
 
+            // Update portfolio stock prices from MarketTracker
+            user.getPortfolio().getAllUserStocks().forEach(userStock -> {
+                MarketTracker.Instance()
+                        .getStock(userStock.getStock().getTicker())
+                        .ifPresent(updatedStock -> {
+                            userStock.getStock().updatePrice(updatedStock.getMarketPrice());
+                        });
+            });
+
+            try {
+                // Save updated portfolio back to database
+                dataAccess.updateUserData(user);
+            } catch (java.rmi.ServerException e) {
+                System.err.println("Failed to update user data: " + e.getMessage());
+            }
+
             System.out.println("Current user: " + user.getUsername());
             ViewManager.Instance().broadcastEvent(new UpdateAssetEvent(user.getPortfolio(), user.getBalance()));
         } catch (ValidationException e) {

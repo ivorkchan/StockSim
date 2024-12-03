@@ -165,6 +165,7 @@ public class MarketSearchPanel extends JPanel implements IComponent {
             stockTable.setRowSorter(rowSorter);
             rowSorter.setSortKeys(List.of(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
             rowSorter.sort();
+            stockTable.adjustColumnWidths(); // Maintain column proportions after model update
         });
     }
 

@@ -61,56 +61,74 @@ public class ExternalStockDataAccessObject implements StockDataAccessInterface {
      */
     @Override
     public Map<String, Stock> getStocks() throws RateLimitExceededException {
+        System.out.println("Fetching all stocks data...");
         HashMap<String, Stock> stocks = new HashMap<>();
 
         for (String ticker : tickers) {
+            System.out.println("\nProcessing ticker: " + ticker);
             // Information to create a new default stock
             String company = "Unknown Company Name";
             String industry = "Unknown Industry";
 
-            // Retrieves ticker current market price
-            double price = getMarketPrice(ticker);
-
-            // Profile2 api call to get company name and industry
             try {
+                // Retrieves ticker current market price
+                System.out.println("Getting market price for " + ticker);
+                double price = getMarketPrice(ticker);
+
+                // Profile2 api call to get company name and industry
+                System.out.println("Getting company profile for " + ticker);
+
                 // Creates new request with Profile2 url
                 String profileUrl = String.format("%s/stock/profile2?symbol=%s&token=%s", BASE_URL, ticker, apiKey);
                 Request profileRequest = new Request.Builder().url(profileUrl).build();
 
+                System.out.println("Making API call to: " + profileUrl.replace(apiKey, "API_KEY_HIDDEN"));
+
                 // Initiates API call request
                 try (Response profileResponse = client.newCall(profileRequest).execute()) {
+                    System.out.println("Profile response code: " + profileResponse.code());
+
                     if (profileResponse.isSuccessful()) {
-                        JSONObject jsonObject =
-                                new JSONObject(profileResponse.body().string());
-                        // Gets the ticker company "name" or returns default company name if unavailable
+                        String responseBody = profileResponse.body().string();
+                        System.out.println("Profile response body: " + responseBody);
+
+                        JSONObject jsonObject = new JSONObject(responseBody);
                         company = jsonObject.optString("name", company);
-                        // Gets the company's industry "finnhubIndustry" based on finnhub's classification or returns
-                        // default industry if unavailable
                         industry = jsonObject.optString("finnhubIndustry", industry);
+
+                        System.out.println(
+                                "Successfully fetched profile for " + ticker + ": " + company + " (" + industry + ")");
                     } else if (profileResponse.code() == LIMIT_EXCEED_ERROR_CODE) {
+                        System.err.println("Rate limit exceeded while fetching profile for: " + ticker);
                         throw new RateLimitExceededException();
                     } else {
-                        // Error message for errors other than exceed rate limit
-                        System.out.println("Failed to fetch profile data for ticker: " + ticker);
+                        System.err.println("Failed to fetch profile for " + ticker);
+                        System.err.println("Response code: " + profileResponse.code());
+                        System.err.println(
+                                "Response body: " + profileResponse.body().string());
                     }
                 }
 
                 // Check if the stock already exists in the map
                 if (stocks.containsKey(ticker)) {
-                    // Update the price of the existing stock
+                    System.out.println("Updating existing stock: " + ticker);
                     stocks.get(ticker).updatePrice(price);
                 } else {
-                    // Create a new Stock object and add it to the map
+                    System.out.println("Creating new stock: " + ticker);
                     Stock stock = new Stock(ticker, company, industry, price);
                     stocks.put(ticker, stock);
                 }
 
             } catch (IOException e) {
+                System.err.println("IOException while processing " + ticker);
+                e.printStackTrace();
+            } catch (Exception e) {
+                System.err.println("Unexpected error while processing " + ticker);
                 e.printStackTrace();
             }
         }
 
-        // Return an unmodifiable view of the stocks map to prevent external modifications
+        System.out.println("\nFinished fetching all stocks. Total stocks: " + stocks.size());
         return Collections.unmodifiableMap(stocks);
     }
 
@@ -139,6 +157,7 @@ public class ExternalStockDataAccessObject implements StockDataAccessInterface {
      * @return the updated price
      */
     private double getMarketPrice(String ticker) throws RateLimitExceededException {
+        System.out.println("Fetching market price for ticker: " + ticker);
 
         // Quote api call to get current market price
         try {
@@ -146,23 +165,38 @@ public class ExternalStockDataAccessObject implements StockDataAccessInterface {
             String quoteUrl = String.format("%s/quote?symbol=%s&token=%s", BASE_URL, ticker, apiKey);
             Request quoteRequest = new Request.Builder().url(quoteUrl).build();
 
+            System.out.println("Making API call to: " + quoteUrl.replace(apiKey, "API_KEY_HIDDEN"));
+
             // Initiates API call request
             try (Response quoteResponse = client.newCall(quoteRequest).execute()) {
+                System.out.println("Response code: " + quoteResponse.code());
+
                 if (quoteResponse.isSuccessful()) {
-                    JSONObject jsonObject = new JSONObject(quoteResponse.body().string());
-                    // Gets the current market price "c"
-                    return jsonObject.getDouble("c");
+                    String responseBody = quoteResponse.body().string();
+                    System.out.println("Response body: " + responseBody);
+
+                    JSONObject jsonObject = new JSONObject(responseBody);
+                    double price = jsonObject.getDouble("c");
+                    System.out.println("Successfully fetched price for " + ticker + ": $" + price);
+                    return price;
                 } else if (quoteResponse.code() == LIMIT_EXCEED_ERROR_CODE) {
+                    System.err.println("Rate limit exceeded for ticker: " + ticker);
                     throw new RateLimitExceededException();
                 } else {
-                    // Error message for errors other than exceed rate limit
-                    System.out.println("Failed to fetch quote data for ticker: " + ticker);
+                    System.err.println("Failed to fetch quote data for ticker: " + ticker);
+                    System.err.println("Response code: " + quoteResponse.code());
+                    System.err.println("Response body: " + quoteResponse.body().string());
                 }
             }
         } catch (IOException e) {
+            System.err.println("IOException while fetching price for " + ticker);
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("Unexpected error while fetching price for " + ticker);
             e.printStackTrace();
         }
-        // Returns default price if call failed
+
+        System.out.println("Returning default price (0.0) for " + ticker);
         return 0.0;
     }
 }
