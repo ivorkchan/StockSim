@@ -1,9 +1,6 @@
 package use_case.execute_sell;
 
-import entity.Portfolio;
-import entity.Stock;
-import entity.Transaction;
-import entity.User;
+import entity.*;
 import java.rmi.ServerException;
 import java.util.Date;
 import utility.MarketTracker;
@@ -25,17 +22,26 @@ public class ExecuteSellInteractor implements ExecuteSellInputBoundary {
         try {
             User currentUser = dataAccess.getUserWithCredential(data.credential());
             Stock stock = MarketTracker.Instance().getStock(data.ticker()).orElseThrow(StockNotFoundException::new);
+            Portfolio portfolio = currentUser.getPortfolio();
 
             double currentPrice = stock.getMarketPrice();
-            double totalCost = currentPrice * data.quantity();
+            double totalValue = currentPrice * data.quantity();
 
-            if (currentUser.getBalance() < totalCost) {
-                throw new InsufficientMarginCallException();
+            // Get current stock position if exists
+            int currentQuantity = portfolio
+                    .getUserStock(data.ticker())
+                    .map(UserStock::getQuantity)
+                    .orElse(0);
+
+            // If user doesn't have the stock or doesn't have enough quantity
+            // they need margin to short sell
+            if (currentQuantity < data.quantity()) {
+                if (currentUser.getBalance() < totalValue) {
+                    throw new InsufficientMarginCallException();
+                }
             }
 
-            currentUser.addBalance(totalCost);
-
-            Portfolio portfolio = currentUser.getPortfolio();
+            currentUser.addBalance(totalValue);
             portfolio.updatePortfolio(stock, -data.quantity(), currentPrice);
 
             Transaction transaction = new Transaction(new Date(), data.ticker(), data.quantity(), currentPrice, "SELL");
