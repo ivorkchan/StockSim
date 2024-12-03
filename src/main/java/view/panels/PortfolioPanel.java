@@ -32,7 +32,7 @@ public class PortfolioPanel extends JPanel implements IComponent {
     private static final int PADDING = 20;
 
     private final TableComponent portfolioTable;
-    private final TableRowSorter<DefaultTableModel> rowSorter;
+    private TableRowSorter<DefaultTableModel> rowSorter;
 
     public PortfolioPanel() {
         ViewManager.Instance().registerComponent(this);
@@ -146,19 +146,15 @@ public class PortfolioPanel extends JPanel implements IComponent {
     }
 
     private void updateTableData(Portfolio portfolio) {
-        // Temporarily disable sorting
-        rowSorter.setSortsOnUpdates(false);
-
-        DefaultTableModel model = (DefaultTableModel) portfolioTable.getModel();
-        model.setRowCount(0);
-
+        // Create new data first
+        DefaultTableModel newModel = createTableModel();
         if (portfolio != null) {
             for (UserStock userStock : portfolio.getAllUserStocks()) {
                 double marketValue = userStock.getMarketValue();
                 double totalCost = userStock.getTotalCost();
                 double totalProfit = marketValue - totalCost;
 
-                model.addRow(new Object[] {
+                newModel.addRow(new Object[] {
                     userStock.getStock().getTicker(),
                     userStock.getStock().getCompany(),
                     userStock.getQuantity(),
@@ -170,10 +166,16 @@ public class PortfolioPanel extends JPanel implements IComponent {
             }
         }
 
-        // Re-enable sorting and apply default sort
-        rowSorter.setSortsOnUpdates(true);
-        rowSorter.setSortKeys(List.of(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
-        rowSorter.sort();
+        // Update UI on EDT
+        SwingUtilities.invokeLater(() -> {
+            portfolioTable.setModel(newModel);
+            portfolioTable.setRowSorter(null); // Clear old sorter
+            rowSorter = new TableRowSorter<>(newModel);
+            setupNumericComparators();
+            portfolioTable.setRowSorter(rowSorter);
+            rowSorter.setSortKeys(List.of(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
+            rowSorter.sort();
+        });
     }
 
     @Override

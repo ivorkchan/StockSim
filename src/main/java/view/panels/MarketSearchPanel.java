@@ -24,7 +24,7 @@ public class MarketSearchPanel extends JPanel implements IComponent {
     private final InputComponent searchField;
     private final ButtonComponent searchButton;
     private final TableComponent stockTable;
-    private final TableRowSorter<DefaultTableModel> rowSorter;
+    private TableRowSorter<DefaultTableModel> rowSorter;
 
     public MarketSearchPanel() {
         ViewManager.Instance().registerComponent(this);
@@ -145,14 +145,10 @@ public class MarketSearchPanel extends JPanel implements IComponent {
     }
 
     private void updateTableData(List<Stock> stocks) {
-        // Temporarily disable sorting
-        rowSorter.setSortsOnUpdates(false);
-
-        DefaultTableModel model = (DefaultTableModel) stockTable.getModel();
-        model.setRowCount(0);
-
+        // Create new data first
+        DefaultTableModel newModel = createTableModel();
         for (Stock stock : stocks) {
-            model.addRow(new Object[] {
+            newModel.addRow(new Object[] {
                 stock.getTicker(),
                 stock.getCompany(),
                 stock.getIndustry(),
@@ -160,10 +156,16 @@ public class MarketSearchPanel extends JPanel implements IComponent {
             });
         }
 
-        // Re-enable sorting and apply default sort
-        rowSorter.setSortsOnUpdates(true);
-        rowSorter.setSortKeys(List.of(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
-        rowSorter.sort();
+        // Update UI on EDT
+        SwingUtilities.invokeLater(() -> {
+            stockTable.setModel(newModel);
+            stockTable.setRowSorter(null); // Clear old sorter
+            rowSorter = new TableRowSorter<>(newModel);
+            setupNumericComparators();
+            stockTable.setRowSorter(rowSorter);
+            rowSorter.setSortKeys(List.of(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
+            rowSorter.sort();
+        });
     }
 
     @Override

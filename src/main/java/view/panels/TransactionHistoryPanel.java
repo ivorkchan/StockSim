@@ -33,7 +33,7 @@ public class TransactionHistoryPanel extends JPanel implements IComponent {
 
     private final TableComponent historyTable;
     private final DefaultTableModel tableModel;
-    private final TableRowSorter<TableModel> rowSorter;
+    private TableRowSorter<TableModel> rowSorter;
 
     public TransactionHistoryPanel() {
         ViewManager.Instance().registerComponent(this);
@@ -129,14 +129,12 @@ public class TransactionHistoryPanel extends JPanel implements IComponent {
     }
 
     private void updateTableData(TransactionHistory history) {
-        // Temporarily disable sorting
-        rowSorter.setSortsOnUpdates(false);
-
-        tableModel.setRowCount(0);
+        // Create new data first
+        DefaultTableModel newModel = createTableModel();
         if (history != null) {
             for (Transaction transaction : history.getTransactions()) {
                 double totalPrice = transaction.executionPrice() * transaction.quantity();
-                tableModel.addRow(new Object[] {
+                newModel.addRow(new Object[] {
                     DATE_FORMAT.format(transaction.timestamp()),
                     transaction.ticker(),
                     transaction.type(),
@@ -147,10 +145,16 @@ public class TransactionHistoryPanel extends JPanel implements IComponent {
             }
         }
 
-        // Re-enable sorting and apply default sort
-        rowSorter.setSortsOnUpdates(true);
-        rowSorter.setSortKeys(List.of(new RowSorter.SortKey(0, SortOrder.DESCENDING)));
-        rowSorter.sort();
+        // Update UI on EDT
+        SwingUtilities.invokeLater(() -> {
+            historyTable.setModel(newModel);
+            historyTable.setRowSorter(null); // Clear old sorter
+            rowSorter = new TableRowSorter<>(newModel);
+            setupNumericComparators();
+            historyTable.setRowSorter(rowSorter);
+            rowSorter.setSortKeys(List.of(new RowSorter.SortKey(0, SortOrder.DESCENDING)));
+            rowSorter.sort();
+        });
     }
 
     @Override
