@@ -5,6 +5,7 @@ import use_case.view_history.ViewHistoryOutputData;
 import utility.ServiceManager;
 import view.ViewManager;
 import view.view_events.DialogEvent;
+import view.view_events.SwitchPanelEvent;
 import view.view_events.UpdateTransactionHistoryEvent;
 
 /** Presenter for the ViewHistory Use Case */
@@ -22,6 +23,7 @@ public class ViewHistoryPresenter implements ViewHistoryOutputBoundary {
     @Override
     public void prepareSuccessView(ViewHistoryOutputData outputData) {
         ViewManager.Instance().broadcastEvent(new UpdateTransactionHistoryEvent(outputData.transactionHistory()));
+        ViewManager.Instance().broadcastEvent(new SwitchPanelEvent("TransactionHistoryPanel"));
     }
 
     /** Prepares the ValidationException view for the ViewHistory use case */

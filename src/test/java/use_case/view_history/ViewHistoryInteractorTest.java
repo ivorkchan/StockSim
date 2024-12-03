@@ -1,13 +1,13 @@
 package use_case.view_history;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import entity.Transaction;
 import entity.TransactionHistory;
 import entity.User;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,55 +22,70 @@ class ViewHistoryInteractorTest {
 
     @BeforeEach
     void setUp() {
+        // Create mock data access and presenter for ViewHistory
         dataAccess = Mockito.mock(ViewHistoryDataAccessInterface.class);
         outputPresenter = Mockito.mock(ViewHistoryOutputBoundary.class);
     }
 
     @Test
     void successTest() throws ValidationException {
+        // Create a mockUser and it's mockCredential
         User mockUser = new User("testUser", "password");
-
+        TransactionHistory mockUserTransactionHistory = mockUser.getTransactionHistory();
         when(dataAccess.getUserWithCredential("dummy")).thenReturn(mockUser);
 
-        // prepare input data
+        // Set up the interactor and input data for this mockUser
         ViewHistoryInputData inputData = new ViewHistoryInputData("dummy");
-
-        // prepare interactor
         ViewHistoryInteractor interactor = new ViewHistoryInteractor(dataAccess, outputPresenter);
+
+        // Execute the interactor with the inputData from the mockUser
         interactor.execute(inputData);
 
-        // check if message is prepared
-        verify(outputPresenter).prepareSuccessView(new ViewHistoryOutputData(mockUser.getTransactionHistory()));
+        // Check if the view is correct
+        verify(outputPresenter).prepareSuccessView(new ViewHistoryOutputData(mockUserTransactionHistory));
 
-        // check if user portfolio is empty
-        TransactionHistory mockUserTransactionHistory = mockUser.getTransactionHistory();
-        List<Transaction> userTransactions = new ArrayList<>();
-        assertEquals(
-                userTransactions, mockUserTransactionHistory.getTransactions(), "Transaction History should be empty");
+        // Check the initial empty state of TransactionHistory
+        assertTrue(
+                mockUserTransactionHistory.getTransactions().isEmpty(),
+                "The transaction History of a new user should be empty");
 
-        // mock execute buy transaction
-        Date buyTimestamp = new Date(2024, 11, 22, 13, 05, 55);
-        String ticker = "XXXX";
-        Transaction mockBuyTransaction = new Transaction(buyTimestamp, ticker, 10, 100.0, "buy");
+        // Create a mock buy transaction
+        Date mockBuyTimestamp = new Date(2024 - 1900, 11, 22, 13, 5, 55);
+        Transaction mockBuyTransaction = new Transaction(mockBuyTimestamp, "XXXX", 10, 100.0, "BUY");
         mockUserTransactionHistory.addTransaction(mockBuyTransaction);
 
-        // check if user history updated buy transaction
-        userTransactions.add(mockBuyTransaction);
+        // Check if the TransactionHistory contains the mock buy transaction
         assertEquals(
-                userTransactions,
+                List.of(mockBuyTransaction),
                 mockUserTransactionHistory.getTransactions(),
                 "Transaction History should contain the mockBuyTransaction");
 
-        // mock execute sell transaction
-        Date sellTimestamp = new Date(2024, 11, 23, 03, 05, 25);
-        Transaction mockSellTransaction = new Transaction(sellTimestamp, ticker, 5, 100.0, "sell");
+        // Create a mock sell transaction
+        Date mockSellTimestamp = new Date(2024 - 1900, 11, 23, 3, 5, 25);
+        Transaction mockSellTransaction = new Transaction(mockSellTimestamp, "XXXX", 5, 100.0, "SELL");
         mockUserTransactionHistory.addTransaction(mockSellTransaction);
 
-        // check if user history updated sell transaction
-        userTransactions.add(mockSellTransaction);
+        // Check if the TransactionHistory contains both the mock buy and mock sell transaction
+        List<Transaction> expectedTransactions = List.of(mockBuyTransaction, mockSellTransaction);
         assertEquals(
-                userTransactions,
+                expectedTransactions,
                 mockUserTransactionHistory.getTransactions(),
-                "Transaction History should be contain the mockSellTransaction");
+                "Transaction History should contain both the mockBuyTransaction and the mockSellTransaction");
+    }
+
+    @Test
+    void validationExceptionTest() throws ValidationException {
+        // Simulate a validation error to throw a ValidationException
+        when(dataAccess.getUserWithCredential("invalidUser")).thenThrow(new ValidationException());
+
+        // Set up the interactor and input data for this ValidationException case
+        ViewHistoryInputData inputData = new ViewHistoryInputData("invalidUser");
+        ViewHistoryInteractor interactor = new ViewHistoryInteractor(dataAccess, outputPresenter);
+
+        // Execute the interactor with the inputData
+        interactor.execute(inputData);
+
+        // Check if the view correctly handles the validation error
+        verify(outputPresenter).prepareValidationExceptionView();
     }
 }

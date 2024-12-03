@@ -1,6 +1,7 @@
 package view.panels;
 
 import interface_adapter.logout.LogoutController;
+import interface_adapter.view_history.ViewHistoryController;
 import java.awt.*;
 import javax.swing.*;
 import utility.ServiceManager;
@@ -14,7 +15,6 @@ import view.view_events.UpdateUsernameEvent;
 import view.view_events.ViewEvent;
 
 public class DashboardPanel extends JPanel implements IComponent {
-
     private static final int PADDING = 20;
     private static final String CURRENCY_FORMAT = "$%.2f";
 
@@ -115,8 +115,9 @@ public class DashboardPanel extends JPanel implements IComponent {
     private void setupButtonActions() {
         tradeButton.addActionListener(
                 e -> ViewManager.Instance().broadcastEvent(new SwitchPanelEvent("TradeSimulationPanel")));
-        historyButton.addActionListener(
-                e -> ViewManager.Instance().broadcastEvent(new SwitchPanelEvent("TransactionHistoryPanel")));
+        historyButton.addActionListener(e -> ServiceManager.Instance()
+                .getService(ViewHistoryController.class)
+                .execute());
         logoutButton.addActionListener(e ->
                 ServiceManager.Instance().getService(LogoutController.class).execute());
     }
